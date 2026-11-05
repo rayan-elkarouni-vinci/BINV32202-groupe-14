@@ -3,12 +3,17 @@ import type { Application } from "../models/application.ts";
 import { getApplications } from "../services/applications.service.ts";
 import { isUnauthorized } from "../utils/api.ts";
 
-export const useApplications = (token: string, onUnauthorized: () => void) => {
+export const useApplications = (
+  token: string,
+  onUnauthorized: () => void,
+  enabled = true,
+) => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
 
     getApplications(token, controller.signal)
@@ -28,7 +33,11 @@ export const useApplications = (token: string, onUnauthorized: () => void) => {
       });
 
     return () => controller.abort();
-  }, [token, onUnauthorized]);
+  }, [token, onUnauthorized, enabled]);
 
-  return { applications, isLoading, error };
+  return {
+    applications: enabled ? applications : [],
+    isLoading: enabled && isLoading,
+    error: enabled ? error : null,
+  };
 };

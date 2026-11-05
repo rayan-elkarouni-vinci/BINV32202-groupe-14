@@ -1,9 +1,16 @@
 import type { Offer } from "../models/offer.ts";
 import { useState } from "react";
+import type { Application, ApplicationStatus } from "../models/application.ts";
 import type { User } from "../models/user.ts";
 import { createApplication } from "../services/applications.service.ts";
 import { isUnauthorized } from "../utils/api.ts";
-import { OFFER_STATUS_LABELS, OFFER_STATUS_TONES, PERIOD_LABELS } from "../utils/labels.ts";
+import {
+  APPLICATION_STATUS_LABELS,
+  APPLICATION_STATUS_TONES,
+  OFFER_STATUS_LABELS,
+  OFFER_STATUS_TONES,
+  PERIOD_LABELS,
+} from "../utils/labels.ts";
 import StatusBadge from "./StatusBadge.tsx";
 
 interface OfferTableProps {
@@ -11,24 +18,42 @@ interface OfferTableProps {
   user: User;
   token: string;
   onUnauthorized: () => void;
+  applicationStatuses?: Partial<Record<number, ApplicationStatus>>;
+  onApplicationSubmitted?: (application: Application) => void;
 }
 
-const OfferTable = ({ offers, user, token, onUnauthorized }: OfferTableProps) => {
+const OfferTable = ({
+  offers,
+  user,
+  token,
+  onUnauthorized,
+  applicationStatuses = {},
+  onApplicationSubmitted,
+}: OfferTableProps) => {
   const [activeOfferId, setActiveOfferId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
-  const [submittedOfferIds, setSubmittedOfferIds] = useState<number[]>([]);
+  const [submittingOfferId, setSubmittingOfferId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const submitApplication = async (offerId: number) => {
     try {
       setError(null);
-      await createApplication(token, offerId, message);
-      setSubmittedOfferIds((ids) => [...ids, offerId]);
+      setSubmittingOfferId(offerId);
+      const application = await createApplication(token, offerId, message);
+      onApplicationSubmitted?.(application);
       setActiveOfferId(null);
       setMessage("");
     } catch (reason: unknown) {
       if (isUnauthorized(reason)) onUnauthorized();
-      else setError(reason instanceof Error ? reason.message : "Candidature impossible");
+      else if (reason instanceof Error) {
+        setError(
+          reason.message.includes("409")
+            ? "Vous avez déjà candidaté à cette offre."
+            : reason.message,
+        );
+      } else setError("Candidature impossible");
+    } finally {
+      setSubmittingOfferId(null);
     }
   };
 
@@ -43,7 +68,7 @@ const OfferTable = ({ offers, user, token, onUnauthorized }: OfferTableProps) =>
           <th scope="col">Année</th>
           <th scope="col">Période</th>
           <th scope="col">Statut</th>
-          {user.kind === "STUDENT" && <th scope="col">Action</th>}
+          {user.kind === "STUDENT" && <th scope="col">Candidature</th>}
         </tr>
       </thead>
       <tbody>
@@ -61,8 +86,11 @@ const OfferTable = ({ offers, user, token, onUnauthorized }: OfferTableProps) =>
             </td>
             {user.kind === "STUDENT" && (
               <td>
-                {submittedOfferIds.includes(offer.id) ? (
-                  "Candidature envoyée"
+                {applicationStatuses[offer.id] ? (
+                  <StatusBadge
+                    label={APPLICATION_STATUS_LABELS[applicationStatuses[offer.id]!]}
+                    tone={APPLICATION_STATUS_TONES[applicationStatuses[offer.id]!]}
+                  />
                 ) : activeOfferId === offer.id ? (
                   <form onSubmit={(event) => { event.preventDefault(); void submitApplication(offer.id); }}>
                     <label>
@@ -74,7 +102,9 @@ const OfferTable = ({ offers, user, token, onUnauthorized }: OfferTableProps) =>
                         onChange={(event) => setMessage(event.target.value)}
                       />
                     </label>
-                    <button type="submit">Envoyer</button>
+                    <button type="submit" disabled={submittingOfferId === offer.id}>
+                      {submittingOfferId === offer.id ? "Envoi…" : "Envoyer"}
+                    </button>
                     <button type="button" onClick={() => { setActiveOfferId(null); setMessage(""); }}>
                       Annuler
                     </button>
