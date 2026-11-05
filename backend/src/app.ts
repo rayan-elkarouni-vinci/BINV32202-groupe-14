@@ -4,7 +4,10 @@ import { createAuthRouter } from "./controllers/auth.controller.ts";
 import { createCompaniesRouter } from "./controllers/companies.controller.ts";
 import { healthRouter } from "./controllers/health.controller.ts";
 import { createOffersRouter } from "./controllers/offers.controller.ts";
-import { createApplicationsRouter } from "./controllers/applications.controller.ts";
+import {
+  createApplicationsRouter,
+  createOfferApplicationsRouter,
+} from "./controllers/applications.controller.ts";
 import type { Db } from "./db/database.ts";
 import { createAuthenticate } from "./middlewares/authenticate.ts";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.ts";
@@ -35,7 +38,8 @@ export const createApp = (db: Db, authConfig: AuthConfig) => {
   // Routes protégées : l'utilisateur est identifié avant d'atteindre le contrôleur.
   app.use("/companies", authenticate, createCompaniesRouter(companiesService));
   app.use("/offers", authenticate, createOffersRouter(offersService));
-  app.use("/offers", authenticate, createApplicationsRouter(applicationsService));
+  app.use("/offers", authenticate, createOfferApplicationsRouter(applicationsService));
+  app.use("/applications", authenticate, createApplicationsRouter(applicationsService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

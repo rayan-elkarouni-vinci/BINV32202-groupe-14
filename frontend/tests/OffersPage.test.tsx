@@ -93,8 +93,14 @@ describe("OffersPage", () => {
       "/api/offers/2/applications": () => Response.json({
         id: 10,
         offerId: 2,
+        offerTitle: "Refonte du portail client",
+        companyShortName: "Lumen Digital",
+        academicYear: "2026-2027",
+        period: "P2",
+        offerStatus: "SUBMITTED",
         message: "Ma motivation",
         status: "IN_PROGRESS",
+        appliedAt: "2026-11-05 13:00:00",
       }, { status: 201 }),
       "/api/offers": () => Response.json([offers[0]]),
     });

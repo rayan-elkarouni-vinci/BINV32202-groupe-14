@@ -193,3 +193,14 @@ candidature existante en cours, retenue ou non retenue est refusée.
 - `403` `FORBIDDEN`
 - `404` `OFFER_NOT_FOUND`
 - `409` `OFFER_NOT_PUBLISHED` ou `APPLICATION_EXISTS`
+
+## GET /applications
+
+Retourne toutes les candidatures de l'étudiant connecté, sans filtre par année.
+Les candidatures retirées et celles liées à une offre archivée restent retournées.
+
+### Réponses
+
+- `200` : tableau de candidatures
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN` : seuls les étudiants peuvent consulter leurs candidatures.

@@ -2,6 +2,7 @@ import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import { APPLICATION, OFFER, STUDENT } from "../src/db/seed/seedIds.ts";
 import { createTestApp, tokenFor } from "./helpers/testApp.ts";
+import { createTestDatabase } from "./helpers/testDatabase.ts";
 
 let app: ReturnType<typeof createTestApp>;
 
@@ -27,6 +28,59 @@ describe("POST /offers/:offerId/applications", () => {
       offerId: OFFER.FLEET_APP,
       message: "Je suis très motivé.",
       status: "IN_PROGRESS",
+    });
+  });
+
+  describe("GET /applications", () => {
+    it("retourne toutes les candidatures de l'étudiant, y compris retirées", async () => {
+      const response = await request(app)
+        .get("/applications")
+        .set("Authorization", tokenFor("STUDENT", STUDENT.INES_HADDAD));
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          id: APPLICATION.INES_FLEET_APP,
+          status: "IN_PROGRESS",
+        }),
+        expect.objectContaining({
+          id: APPLICATION.INES_BILLING_API,
+          status: "WITHDRAWN",
+        }),
+      ]));
+    });
+
+    it("retourne aussi une candidature liée à une offre archivée", async () => {
+      const db = createTestDatabase();
+      db.prepare(`
+        INSERT INTO applications (offer_id, student_id, message, status)
+        VALUES (?, ?, ?, ?)
+      `).run(OFFER.PDF_REPORTS, STUDENT.DMYTRO_KOVALENKO, null, "IN_PROGRESS");
+      const archivedApp = createTestApp(db);
+
+      const response = await request(archivedApp)
+        .get("/applications")
+        .set("Authorization", tokenFor("STUDENT", STUDENT.DMYTRO_KOVALENKO));
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([
+        expect.objectContaining({
+          offerId: OFFER.PDF_REPORTS,
+          offerStatus: "ARCHIVED",
+        }),
+      ]);
+    });
+
+    it.each([
+      ["ADMIN", 1],
+      ["CONTACT", 1],
+    ] as const)("refuse le profil %s", async (kind, id) => {
+      const response = await request(app)
+        .get("/applications")
+        .set("Authorization", tokenFor(kind, id));
+
+      expect(response.status).toBe(403);
+      expect(response.body.error.code).toBe("FORBIDDEN");
     });
   });
 

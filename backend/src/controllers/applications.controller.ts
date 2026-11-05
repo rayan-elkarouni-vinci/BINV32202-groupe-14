@@ -28,6 +28,16 @@ const parseMessage = (body: unknown): string | null => {
 export const createApplicationsRouter = (service: ApplicationsService) => {
   const router = Router();
 
+  router.get("/", (req, res) => {
+    res.json(service.listOwn(getCurrentUser(req)).map(toApplicationDto));
+  });
+
+  return router;
+};
+
+export const createOfferApplicationsRouter = (service: ApplicationsService) => {
+  const router = Router();
+
   router.post("/:offerId/applications", (req, res) => {
     const application = service.apply(
       getCurrentUser(req),

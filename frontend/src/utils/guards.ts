@@ -70,5 +70,14 @@ export const isApplication = (value: unknown): value is Application =>
   isRecord(value) &&
   typeof value.id === "number" &&
   typeof value.offerId === "number" &&
+  typeof value.offerTitle === "string" &&
+  typeof value.companyShortName === "string" &&
+  typeof value.academicYear === "string" &&
+  isOneOf(["P1", "P2", "OTHER"], value.period) &&
+  isOneOf(["SUBMITTED", "PENDING", "PUBLISHED", "ASSIGNED", "ARCHIVED"], value.offerStatus) &&
   (value.message === null || typeof value.message === "string") &&
-  isOneOf(APPLICATION_STATUSES, value.status);
+  isOneOf(APPLICATION_STATUSES, value.status) &&
+  typeof value.appliedAt === "string";
+
+export const isApplicationList = (value: unknown): value is Application[] =>
+  Array.isArray(value) && value.every(isApplication);
