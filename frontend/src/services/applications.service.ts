@@ -28,3 +28,14 @@ export const getApplications = async (
   });
   return readJson(response, isApplicationList, "Chargement des candidatures impossible");
 };
+
+export const withdrawApplication = async (
+  token: string,
+  applicationId: number,
+): Promise<Application> => {
+  const response = await fetch(`${API_URL}/applications/${applicationId}/withdraw`, {
+    method: "POST",
+    headers: { Authorization: token },
+  });
+  return readJson(response, isApplication, "Retrait de la candidature impossible");
+};

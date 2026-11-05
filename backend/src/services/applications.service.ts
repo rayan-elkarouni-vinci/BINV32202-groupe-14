@@ -15,6 +15,37 @@ export const createApplicationsService = (repository: ApplicationsRepository) =>
     return repository.findByStudent(viewer.id).map(toApplication);
   },
 
+  withdraw: (viewer: User, applicationId: number): Application => {
+    if (!isStudent(viewer)) {
+      throw new HttpError(403, "FORBIDDEN", "Seul un étudiant peut retirer une candidature");
+    }
+
+    const application = repository.findById(applicationId);
+    if (application === undefined) {
+      throw new HttpError(404, "APPLICATION_NOT_FOUND", "Candidature introuvable");
+    }
+    if (application.student_id !== viewer.id) {
+      throw new HttpError(403, "FORBIDDEN", "Cette candidature ne vous appartient pas");
+    }
+    if (application.status !== "IN_PROGRESS") {
+      throw new HttpError(
+        409,
+        "APPLICATION_NOT_IN_PROGRESS",
+        "Seule une candidature en cours peut être retirée",
+      );
+    }
+
+    const withdrawn = repository.withdraw(applicationId, viewer.id);
+    if (withdrawn === undefined) {
+      throw new HttpError(
+        409,
+        "APPLICATION_NOT_IN_PROGRESS",
+        "Seule une candidature en cours peut être retirée",
+      );
+    }
+    return toApplication(withdrawn);
+  },
+
   apply: (viewer: User, offerId: number, message: string | null): Application => {
     if (!isStudent(viewer)) {
       throw new HttpError(403, "FORBIDDEN", "Seul un étudiant peut candidater");

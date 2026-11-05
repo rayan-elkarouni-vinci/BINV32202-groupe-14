@@ -204,3 +204,18 @@ Les candidatures retirées et celles liées à une offre archivée restent retou
 - `200` : tableau de candidatures
 - `401` `UNAUTHENTICATED`
 - `403` `FORBIDDEN` : seuls les étudiants peuvent consulter leurs candidatures.
+
+## POST /applications/:applicationId/withdraw
+
+Retire une candidature de l'étudiant connecté sans supprimer la ligne en base.
+La candidature passe au statut `WITHDRAWN` et seule une candidature `IN_PROGRESS`
+peut être retirée.
+
+### Réponses
+
+- `200` : candidature mise à jour
+- `400` `INVALID_APPLICATION_ID`
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN` : la candidature n'appartient pas à l'étudiant connecté
+- `404` `APPLICATION_NOT_FOUND`
+- `409` `APPLICATION_NOT_IN_PROGRESS`

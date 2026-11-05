@@ -50,6 +50,63 @@ describe("POST /offers/:offerId/applications", () => {
       ]));
     });
 
+    describe("POST /applications/:applicationId/withdraw", () => {
+      it("retire une candidature en cours et conserve la ligne", async () => {
+        const response = await request(app)
+          .post(`/applications/${APPLICATION.LUCAS_FLEET_APP}/withdraw`)
+          .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+        expect(response.status).toBe(200);
+        expect(response.body).toMatchObject({
+          id: APPLICATION.LUCAS_FLEET_APP,
+          status: "WITHDRAWN",
+        });
+
+        const listed = await request(app)
+          .get("/applications")
+          .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+        expect(listed.body).toEqual([
+          expect.objectContaining({ id: APPLICATION.LUCAS_FLEET_APP, status: "WITHDRAWN" }),
+        ]);
+      });
+
+      it("refuse le retrait de la candidature d'un autre étudiant", async () => {
+        const response = await request(app)
+          .post(`/applications/${APPLICATION.LUCAS_FLEET_APP}/withdraw`)
+          .set("Authorization", tokenFor("STUDENT", STUDENT.INES_HADDAD));
+
+        expect(response.status).toBe(403);
+        expect(response.body.error.code).toBe("FORBIDDEN");
+      });
+
+      it.each([
+        APPLICATION.MATEUSZ_CLOUD_MIGRATION,
+        APPLICATION.LEA_CLOUD_MIGRATION,
+        APPLICATION.INES_BILLING_API,
+      ])("refuse le retrait d'une candidature au statut non modifiable (%s)", async (applicationId) => {
+        const studentId = applicationId === APPLICATION.MATEUSZ_CLOUD_MIGRATION
+          ? STUDENT.MATEUSZ_KOWALSKI
+          : applicationId === APPLICATION.LEA_CLOUD_MIGRATION
+            ? STUDENT.LEA_MERTENS
+            : STUDENT.INES_HADDAD;
+        const response = await request(app)
+          .post(`/applications/${applicationId}/withdraw`)
+          .set("Authorization", tokenFor("STUDENT", studentId));
+
+        expect(response.status).toBe(409);
+        expect(response.body.error.code).toBe("APPLICATION_NOT_IN_PROGRESS");
+      });
+
+      it("refuse un identifiant invalide", async () => {
+        const response = await request(app)
+          .post("/applications/not-a-number/withdraw")
+          .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe("INVALID_APPLICATION_ID");
+      });
+    });
+
     it("retourne aussi une candidature liée à une offre archivée", async () => {
       const db = createTestDatabase();
       db.prepare(`
