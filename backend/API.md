@@ -171,3 +171,25 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
 - `400` `INVALID_QUERY` : `period` est répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
+
+## POST /offers/:offerId/applications
+
+Permet à un étudiant de candidater à une offre publiée.
+
+### Requête
+
+- Header `Authorization` obligatoire
+- Body JSON facultatif : `{ "message": "..." }`
+- Le message ne peut pas dépasser 1 000 caractères.
+
+Une candidature retirée est réactivée au lieu de créer une nouvelle ligne. Une
+candidature existante en cours, retenue ou non retenue est refusée.
+
+### Réponses
+
+- `201` : candidature créée ou réactivée
+- `400` `INVALID_BODY`, `INVALID_MESSAGE` ou `INVALID_OFFER_ID`
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN`
+- `404` `OFFER_NOT_FOUND`
+- `409` `OFFER_NOT_PUBLISHED` ou `APPLICATION_EXISTS`

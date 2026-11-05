@@ -87,4 +87,38 @@ describe("OffersPage", () => {
       }),
     ));
   });
+
+  it("permet à un étudiant d'envoyer une candidature avec un message", async () => {
+    const fetchMock = stubFetch({
+      "/api/offers/2/applications": () => Response.json({
+        id: 10,
+        offerId: 2,
+        message: "Ma motivation",
+        status: "IN_PROGRESS",
+      }, { status: 201 }),
+      "/api/offers": () => Response.json([offers[0]]),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    await screen.findByText("Refonte du portail client");
+    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.change(screen.getByRole("textbox", { name: /Message pour/ }), {
+      target: { value: "Ma motivation" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/offers/2/applications",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          Authorization: "jeton",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: "Ma motivation" }),
+      }),
+    ));
+    expect(await screen.findByText("Candidature envoyée")).toBeInTheDocument();
+  });
 });

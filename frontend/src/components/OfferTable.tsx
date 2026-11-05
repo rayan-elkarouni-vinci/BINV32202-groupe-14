@@ -1,13 +1,40 @@
 import type { Offer } from "../models/offer.ts";
+import { useState } from "react";
+import type { User } from "../models/user.ts";
+import { createApplication } from "../services/applications.service.ts";
+import { isUnauthorized } from "../utils/api.ts";
 import { OFFER_STATUS_LABELS, OFFER_STATUS_TONES, PERIOD_LABELS } from "../utils/labels.ts";
 import StatusBadge from "./StatusBadge.tsx";
 
 interface OfferTableProps {
   offers: Offer[];
+  user: User;
+  token: string;
+  onUnauthorized: () => void;
 }
 
-const OfferTable = ({ offers }: OfferTableProps) => (
+const OfferTable = ({ offers, user, token, onUnauthorized }: OfferTableProps) => {
+  const [activeOfferId, setActiveOfferId] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const [submittedOfferIds, setSubmittedOfferIds] = useState<number[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitApplication = async (offerId: number) => {
+    try {
+      setError(null);
+      await createApplication(token, offerId, message);
+      setSubmittedOfferIds((ids) => [...ids, offerId]);
+      setActiveOfferId(null);
+      setMessage("");
+    } catch (reason: unknown) {
+      if (isUnauthorized(reason)) onUnauthorized();
+      else setError(reason instanceof Error ? reason.message : "Candidature impossible");
+    }
+  };
+
+  return (
   <div className="table-wrapper">
+    {error && <p className="state state-error" role="alert">{error}</p>}
     <table className="data-table">
       <thead>
         <tr>
@@ -16,6 +43,7 @@ const OfferTable = ({ offers }: OfferTableProps) => (
           <th scope="col">Année</th>
           <th scope="col">Période</th>
           <th scope="col">Statut</th>
+          {user.kind === "STUDENT" && <th scope="col">Action</th>}
         </tr>
       </thead>
       <tbody>
@@ -31,11 +59,39 @@ const OfferTable = ({ offers }: OfferTableProps) => (
                 tone={OFFER_STATUS_TONES[offer.status]}
               />
             </td>
+            {user.kind === "STUDENT" && (
+              <td>
+                {submittedOfferIds.includes(offer.id) ? (
+                  "Candidature envoyée"
+                ) : activeOfferId === offer.id ? (
+                  <form onSubmit={(event) => { event.preventDefault(); void submitApplication(offer.id); }}>
+                    <label>
+                      <span>Message (facultatif)</span>
+                      <textarea
+                        aria-label={`Message pour ${offer.title}`}
+                        maxLength={1000}
+                        value={message}
+                        onChange={(event) => setMessage(event.target.value)}
+                      />
+                    </label>
+                    <button type="submit">Envoyer</button>
+                    <button type="button" onClick={() => { setActiveOfferId(null); setMessage(""); }}>
+                      Annuler
+                    </button>
+                  </form>
+                ) : (
+                  <button type="button" onClick={() => { setActiveOfferId(offer.id); setError(null); }}>
+                    Candidater
+                  </button>
+                )}
+              </td>
+            )}
           </tr>
         ))}
       </tbody>
     </table>
   </div>
-);
+  );
+};
 
 export default OfferTable;
