@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import OffersPage from "../src/pages/OffersPage.tsx";
 import { adminUser, contactUser, stubFetch, studentUser } from "./helpers/fetchMock.ts";
@@ -37,7 +37,10 @@ describe("OffersPage", () => {
   });
 
   it("adapte la description au profil", async () => {
-    stubFetch({ "/api/offers": () => Response.json([]) });
+    stubFetch({
+      "/api/offers": () => Response.json([]),
+      "/api/applications": () => Response.json([]),
+    });
 
     const { unmount } = render(
       <OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />,
@@ -86,5 +89,106 @@ describe("OffersPage", () => {
         headers: { Authorization: "jeton" },
       }),
     ));
+  });
+
+  it("permet à un étudiant d'envoyer une candidature avec un message", async () => {
+    const fetchMock = stubFetch({
+      "/api/applications": () => Response.json([]),
+      "/api/offers/2/applications": () => Response.json({
+        id: 10,
+        offerId: 2,
+        offerTitle: "Refonte du portail client",
+        companyShortName: "Lumen Digital",
+        academicYear: "2026-2027",
+        period: "P2",
+        offerStatus: "SUBMITTED",
+        message: "Ma motivation",
+        status: "IN_PROGRESS",
+        appliedAt: "2026-11-05 13:00:00",
+      }, { status: 201 }),
+      "/api/offers": () => Response.json([offers[0]]),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    await screen.findByText("Refonte du portail client");
+    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.change(screen.getByRole("textbox", { name: /Message pour/ }), {
+      target: { value: "Ma motivation" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/offers/2/applications",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          Authorization: "jeton",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: "Ma motivation" }),
+      }),
+    ));
+    expect(await screen.findByText("En cours")).toBeInTheDocument();
+  });
+
+  it("sépare les offres disponibles des offres déjà candidatées", async () => {
+    const availableOffer = { ...offers[0], id: 11, title: "Offre disponible", status: "PUBLISHED" };
+    const appliedOffer = { ...offers[0], id: 12, title: "Offre déjà candidatee", status: "PUBLISHED" };
+    const application = {
+      id: 20,
+      offerId: 12,
+      offerTitle: appliedOffer.title,
+      companyShortName: appliedOffer.companyShortName,
+      academicYear: appliedOffer.academicYear,
+      period: appliedOffer.period,
+      offerStatus: "PUBLISHED",
+      message: null,
+      status: "SELECTED",
+      appliedAt: "2026-10-01 10:00:00",
+    };
+    stubFetch({
+      "/api/offers": () => Response.json([availableOffer, appliedOffer]),
+      "/api/applications": () => Response.json([application]),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    const availableSection = await screen.findByRole("heading", { name: "Offres disponibles" });
+    const appliedSection = screen.getByRole("heading", { name: "Offres déjà candidatées" });
+    expect(within(availableSection.parentElement!).getByText("Offre disponible")).toBeInTheDocument();
+    expect(within(availableSection.parentElement!).getByRole("button", { name: "Candidater" }))
+      .toBeInTheDocument();
+    expect(within(appliedSection.parentElement!).getByText("Offre déjà candidatee")).toBeInTheDocument();
+    expect(within(appliedSection.parentElement!).getByText("Retenue")).toBeInTheDocument();
+    expect(within(appliedSection.parentElement!).queryByRole("button", { name: "Candidater" }))
+      .not.toBeInTheDocument();
+  });
+
+  it("replace dans les offres disponibles une offre retirée", async () => {
+    const withdrawnOffer = { ...offers[0], id: 13, title: "Candidature retirée", status: "PUBLISHED" };
+    const withdrawnApplication = {
+      id: 21,
+      offerId: 13,
+      offerTitle: withdrawnOffer.title,
+      companyShortName: withdrawnOffer.companyShortName,
+      academicYear: withdrawnOffer.academicYear,
+      period: withdrawnOffer.period,
+      offerStatus: "PUBLISHED",
+      message: null,
+      status: "WITHDRAWN",
+      appliedAt: "2026-10-01 10:00:00",
+    };
+    stubFetch({
+      "/api/offers": () => Response.json([withdrawnOffer]),
+      "/api/applications": () => Response.json([withdrawnApplication]),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    const availableSection = await screen.findByRole("heading", { name: "Offres disponibles" });
+    expect(within(availableSection.parentElement!).getByText("Candidature retirée")).toBeInTheDocument();
+    expect(within(availableSection.parentElement!).getByRole("button", { name: "Candidater" }))
+      .toBeInTheDocument();
   });
 });

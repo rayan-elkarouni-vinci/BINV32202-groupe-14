@@ -171,3 +171,51 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
 - `400` `INVALID_QUERY` : `period` est répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
+
+## POST /offers/:offerId/applications
+
+Permet à un étudiant de candidater à une offre publiée.
+
+### Requête
+
+- Header `Authorization` obligatoire
+- Body JSON facultatif : `{ "message": "..." }`
+- Le message ne peut pas dépasser 1 000 caractères.
+
+Une candidature retirée est réactivée au lieu de créer une nouvelle ligne. Une
+candidature existante en cours, retenue ou non retenue est refusée.
+
+### Réponses
+
+- `201` : candidature créée ou réactivée
+- `400` `INVALID_BODY`, `INVALID_MESSAGE` ou `INVALID_OFFER_ID`
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN`
+- `404` `OFFER_NOT_FOUND`
+- `409` `OFFER_NOT_PUBLISHED` ou `APPLICATION_EXISTS`
+
+## GET /applications
+
+Retourne toutes les candidatures de l'étudiant connecté, sans filtre par année.
+Les candidatures retirées et celles liées à une offre archivée restent retournées.
+
+### Réponses
+
+- `200` : tableau de candidatures
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN` : seuls les étudiants peuvent consulter leurs candidatures.
+
+## POST /applications/:applicationId/withdraw
+
+Retire une candidature de l'étudiant connecté sans supprimer la ligne en base.
+La candidature passe au statut `WITHDRAWN` et seule une candidature `IN_PROGRESS`
+peut être retirée.
+
+### Réponses
+
+- `200` : candidature mise à jour
+- `400` `INVALID_APPLICATION_ID`
+- `401` `UNAUTHENTICATED`
+- `403` `FORBIDDEN` : la candidature n'appartient pas à l'étudiant connecté
+- `404` `APPLICATION_NOT_FOUND`
+- `409` `APPLICATION_NOT_IN_PROGRESS`
