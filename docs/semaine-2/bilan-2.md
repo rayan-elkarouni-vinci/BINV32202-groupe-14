@@ -40,3 +40,9 @@
 - 131 tests backend et 53 tests frontend réussis, avec typecheck, lint et build réussis. Jamais cela a réussi chez l'agent et pas chez nous. Pareil pour `npm run check`
 - Nos tests préférés: tester directement le site, tous les sénérios imaginés fonctionnent.
 - Crédits IA consommés pour cette séance: 22,7/200 soit 12%.
+
+### Ce qui n'a pas été vérifié
+- Retrait d'une candidature déjà traitée : non testé à la main (aucune candidature traitée disponible).
+- Refus pour un autre rôle et pour une offre non publiée : non testés dans le navigateur.
+
+Détail de tous les cas dans `cas-de-tests.md`.
