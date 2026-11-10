@@ -18,6 +18,17 @@ const applyAs = (kind: "ADMIN" | "CONTACT" | "STUDENT", id: number, offerId: num
 };
 
 describe("POST /offers/:offerId/applications", () => {
+  it("crée une candidature sans message", async () => {
+    const response = await applyAs("STUDENT", STUDENT.DMYTRO_KOVALENKO, OFFER.FLEET_APP);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({
+      offerId: OFFER.FLEET_APP,
+      message: null,
+      status: "IN_PROGRESS",
+    });
+  });
+
   it("crée une candidature avec un message facultatif", async () => {
     const response = await applyAs("STUDENT", STUDENT.DMYTRO_KOVALENKO, OFFER.FLEET_APP, {
       message: "Je suis très motivé.",
@@ -48,6 +59,28 @@ describe("POST /offers/:offerId/applications", () => {
           status: "WITHDRAWN",
         }),
       ]));
+    });
+
+    it("ne retourne pas les candidatures d'un autre étudiant", async () => {
+      const response = await request(app)
+        .get("/applications")
+        .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([
+        {
+          id: APPLICATION.LUCAS_FLEET_APP,
+          offerId: OFFER.FLEET_APP,
+          offerTitle: "Application React de gestion de flotte",
+          companyShortName: "Lumen Digital",
+          offerStatus: "PUBLISHED",
+          academicYear: "2026-2027",
+          period: "P2",
+          message: "Le développement React m'intéresse particulièrement.",
+          status: "IN_PROGRESS",
+          appliedAt: "2026-10-02 18:10:00",
+        },
+      ]);
     });
 
     describe("POST /applications/:applicationId/withdraw", () => {
@@ -105,6 +138,15 @@ describe("POST /offers/:offerId/applications", () => {
         expect(response.status).toBe(400);
         expect(response.body.error.code).toBe("INVALID_APPLICATION_ID");
       });
+
+      it("refuse le retrait d'une candidature inexistante", async () => {
+        const response = await request(app)
+          .post("/applications/999999/withdraw")
+          .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+        expect(response.status).toBe(404);
+        expect(response.body.error.code).toBe("APPLICATION_NOT_FOUND");
+      });
     });
 
     it("retourne aussi une candidature liée à une offre archivée", async () => {
@@ -139,6 +181,13 @@ describe("POST /offers/:offerId/applications", () => {
       expect(response.status).toBe(403);
       expect(response.body.error.code).toBe("FORBIDDEN");
     });
+  });
+
+  it("refuse une candidature sans session", async () => {
+    const response = await request(app).post(`/offers/${OFFER.FLEET_APP}/applications`);
+
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe("UNAUTHENTICATED");
   });
 
   it("refuse les profils qui ne sont pas étudiants", async () => {
