@@ -946,3 +946,158 @@ const response = await applyAs("ADMIN", 1, OFFER.FLEET_APP);
 ```
 
 Le contact n’est donc pas testé par ce test. Le contact apparaît seulement dans un autre test paramétré concernant `GET /applications`, pas la création d’une candidature.
+
+User: Crée docs/semaine-3/matrice-guides-senseurs.html.
+
+Style : reprends la structure, la mise en page et le CSS de la page HTML du professeur
+fournie plus bas. Ne reprends que la forme, pas le contenu.
+
+Contraintes : un seul fichier autonome (CSS/JS inclus), aucune ressource externe,
+ne modifie aucun autre fichier. Source unique des données : les sections « Inventaire »
+et « Audit des guides » de docs/semaine-3/semaine-3.md. Recopie fidèlement, n'invente rien.
+
+Contenu :
+1. En-tête : « Harnais agentique — Guides, senseurs et bonnes pratiques Web 2 », date.
+2. Partie A — Classification : la grille 2×2 (Guide/feedforward vs Senseur/feedback ×
+   Inférentiel vs Computationnel), avec dans chaque case les mécanismes trouvés ;
+   une case sans mécanisme affiche « Aucun mécanisme trouvé ».
+   Puis le tableau détaillé : mécanisme, emplacement, rôle, exemple concret,
+   exécuté pendant la séance ou seulement lu. Puis les corrections apportées à Copilot.
+3. Partie B — Audit Web 2 : le tableau des 5 attentes (attente et source du cours,
+   guide et passage, correspondance, écart ou ajout proposé). La correspondance est un
+   badge coloré avec son texte (Oui vert, Partielle orange, Non rouge, Contradiction violet).
+   Puis les problèmes trouvés dans les guides, les recommandations par priorité et les limites.
+4. Un résumé chiffré : nombre d'attentes Oui / Partielle / Non.
+
+Ensuite, liste-moi les éléments que tu n'as pas pu reprendre tels quels.
+
+Code HTML du professeur joint
+
+Copilot: Je vais extraire fidèlement les sections demandées et le style du modèle, puis créer uniquement le fichier HTML autonome.
+
+Read [](), lines 1 to 344
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\AppData\\Roaming\\Code\\agentSessionData\\6cfda3c0-ad44-40c4-bcd4-c923a7460146\\attachments\\d6601835-2120-49b3-85b7-1852c231d2fb\\Pasted text #1.txt",
+  "view_range": [
+    1,
+    344
+  ]
+}
+
+Read [](), lines 1 to 10
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\docs\\analyse\\matrices_exemples_cours\\matrice_cdc_interview.html",
+  "view_range": [
+    1,
+    10
+  ]
+}
+
+Read [](), lines 1 to 10
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\docs\\analyse\\matrices_exemples_cours\\matrice_interview_cdc.html",
+  "view_range": [
+    1,
+    10
+  ]
+}
+
+Find files matching `docs/semaine-3/semaine-3.md`
+
+Read [](), lines 1 to 220
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\docs\\semaine-3\\semaine-3.md",
+  "view_range": [
+    1,
+    220
+  ]
+}
+
+Read [](), lines 100 to 176
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\docs\\semaine-3\\semaine-3.md",
+  "view_range": [
+    100,
+    176
+  ]
+}
+
+Edit []()
+
+Ran terminal command: git --no-pager status --short -- docs/semaine-3/matrice-guides-senseurs.html
+
+Search for `Harnais agentique|Partie A|Partie B|Corrections apportées|Problèmes trouvés|R...`
+
+Fichier créé : [docs/semaine-3/matrice-guides-senseurs.html]()
+
+Aucun autre fichier n’a été modifié.
+
+Éléments non repris strictement tels quels :
+
+- La mise en page exacte du modèle professeur a été adaptée pour présenter la grille 2×2 et les deux matrices demandées.
+- Le modèle contient des fonctionnalités de navigation et de lecture de documents sources ; elles n’ont pas été reprises car aucune ressource externe ou autre page n’était nécessaire.
+- Les données ont été reprises depuis [docs/semaine-3/semaine-3.md](), sans ajout de contenu d’audit.
+
+User: Crée docs/semaine-3/matrice-tracabilite-tests.html.
+
+Même style que la page du professeur fournie plus bas (forme uniquement), un seul fichier
+autonome, aucune ressource externe, ne modifie aucun autre fichier.
+Source unique : les sections « Couverture des exigences » et « Modifications et vérification »
+de docs/semaine-3/semaine-3.md. Recopie fidèlement. Vérifie chaque nom de test dans
+backend/tests/applications.test.ts et frontend/tests/*.test.tsx et signale tout écart.
+
+Contenu :
+1. En-tête : « Traçabilité des tests — Candidatures (EF-32, EF-33, RG-03) », date, légende :
+   Couvert = une assertion porte sur le résultat attendu ; Partiel ; Absent.
+2. Tableau des 14 cas : #, exigence, cas, test (fichier et nom), assertions (monospace),
+   couverture avant, couverture après séance (badges colorés avec texte). Mets en
+   évidence les lignes qui ont changé.
+3. Résumé chiffré Couvert / Partiel / Absent, avant et après.
+4. Tests ajoutés (avec le défaut qui les ferait échouer), manques restants,
+   tests hors exigence.
+5. Pied de page : résultats de npm run check (lint 0 erreur 0 avertissement, typecheck OK,
+   135 tests backend et 55 frontend réussis, build OK).
+
+Code HTML du professeur joint
+
+Copilot: Je vais reprendre les deux sections sources, vérifier les noms exacts dans les tests, puis remplacer uniquement le fichier demandé.
+
+Read [](), lines 45 to 145
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\docs\\semaine-3\\semaine-3.md",
+  "view_range": [
+    45,
+    145
+  ]
+}
+
+Read , lines 20 to 250
+Completed with input: {
+  "path": "C:\\Users\\Rayan\\Downloads\\HE Vinci\\BLOC 3\\4 - IA 4devs\\6 - Projet\\WORKSPACE\\BINV32202-groupe-14\\backend\\tests\\applications.test.ts",
+  "view_range": [
+    20,
+    250
+  ]
+}
+
+Search for `it\("|it\.each\(`
+
+La source actuelle indique quatre tests ajoutés (dont le test de liste complète du cas 12) et corrige le cas 4 en « Partiel » : le test réel ne couvre que l’administrateur. Je vais refléter ces valeurs, sans reprendre les anciennes valeurs de la matrice précédente.
+
+Edit []()
+
+Ran terminal command: git --no-pager status --short -- docs/semaine-3/matrice-tracabilite-tests.html
+
+Search for `Traçabilité des tests|Résumé chiffré|Tests ajoutés|Manques restants|Tests hor...`
+
+Fichier créé : [docs/semaine-3/matrice-tracabilite-tests.html]()
+
+- Fichier autonome, CSS inclus, aucune ressource externe.
+- Seul ce fichier a été ajouté.
+- Les 14 cas, les tests ajoutés, les manques, les tests hors exigence et les résultats de `npm run check` sont inclus.
+- Les écarts de noms de tests sont signalés dans la section « Vérification des noms de tests ».
+
+Résumé calculé depuis la source :
+
+- Avant : 7 Couvert, 4 Partiel, 3 Absent.
+- Après : 10 Couvert, 3 Partiel, 0 Absent.

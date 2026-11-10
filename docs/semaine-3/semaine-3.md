@@ -1,13 +1,15 @@
-# Bilan semaine 3 — Harnais agentique
+# Bilan semaine 3 - Harnais agentique
 
 > Les inventaires et la matrice de couverture ont été produits avec Copilot, puis relus et corrigés
 > (voir les « Corrections apportées à l'analyse de Copilot »).
 
 ## Inventaire
 
+Version visuelle : `matrice-guides-senseurs.html`.
+
 ### Matrice guides / senseurs
 
-| | Guide — feedforward | Senseur — feedback |
+| | Guide - feedforward | Senseur - feedback |
 |---|---|---|
 | **Inférentiel** (interprété par une IA) | `.github/copilot-instructions.md`, `README.md`, `docs/analyse/architecture.md`, `docs/analyse/cdc_gesta_developpement.md`, nos prompts | Aucun senseur inférentiel **automatisé** (pas de revue IA configurée, pas de CI). Seulement une revue IA **sollicitée à la main** : l'analyse de couverture demandée à Copilot pendant la séance. |
 | **Computationnel** (règles ou programmes) | `.vscode/settings.json` (permissions et sandbox de l'agent), scripts npm (`package.json`), contrainte de version Node (`engines`) | Tests backend (Vitest + Supertest), tests frontend (Vitest + Testing Library), Oxlint, TypeScript (`tsc`), build, tous regroupés dans `npm run check` |
@@ -17,7 +19,7 @@
 | Mécanisme | Emplacement | Rôle | Exemple concret | Exécuté pendant la séance ? |
 |---|---|---|---|---|
 | Instructions Copilot | `.github/copilot-instructions.md` | Guide inférentiel : architecture, conventions, commandes, règles de modification | « Never edit an applied migration. Add the next ordered file under `backend/src/db/migrations/`. » | Lu en entier par nous (audit des guides) |
-| README | `README.md` | Guide inférentiel : démarrage, commandes attendues | « `npm run check` — Lint, typecheck, tests et build : à lancer avant chaque commit important » | Lu |
+| README | `README.md` | Guide inférentiel : démarrage, commandes attendues | « `npm run check` - Lint, typecheck, tests et build : à lancer avant chaque commit important » | Lu |
 | Architecture | `docs/analyse/architecture.md` | Guide inférentiel : responsabilités des couches | « Backend requests flow through `controllers -> services -> repositories -> SQLite`. » | Lu |
 | Cahier des charges | `docs/analyse/cdc_gesta_developpement.md` | Guide inférentiel : exigences et règles métier | RG-03 : un étudiant ne peut candidater qu'à une offre au statut « Publiée ». | Lu |
 | Permissions de l'agent | `.vscode/settings.json` | Guide computationnel : limite **ce que l'agent peut faire** (pas ce qu'il doit coder) | `"chat.tools.global.autoApprove": false`, `"**/.env": false` | Appliqué en continu (demandes de confirmation observées) |
@@ -39,25 +41,27 @@
 
 ## Couverture des exigences
 
+Version visuelle : `matrice-tracabilite-tests.html`.
+
 Légende : **Couvert** = une assertion porte sur le résultat attendu. **Partiel** = seule une partie du résultat est vérifiée. **Absent** = aucun test.
 Fichier backend : `backend/tests/applications.test.ts`. Fichiers frontend : `frontend/tests/OffersPage.test.tsx`, `ApplicationsPage.test.tsx`, `ApplicationsWithdraw.test.tsx`.
 
 | # | Exigence | Cas à vérifier | Test existant (fichier et nom) | Assertions utiles | Couverture avant | Après séance |
 |---|---|---|---|---|---|---|
-| 1 | EF-32 | Candidater sans message | Aucun (le test existant envoie un message) | — | **Absent** | **Couvert** (test ajouté) |
+| 1 | EF-32 | Candidater sans message | Aucun (le test existant envoie un message) | - | **Absent** | **Couvert** (test ajouté) |
 | 2 | EF-32 | Candidater avec message | back : « crée une candidature avec un message facultatif » ; front : « permet à un étudiant d'envoyer une candidature avec un message » | `status 201`, `toMatchObject({ message: "Je suis très motivé.", status: "IN_PROGRESS" })` ; front : corps `POST` envoyé + « En cours » affiché | Couvert | Couvert |
 | 3 | EF-32 / RG-03 | Offre non publiée refusée | back : « refuse une offre qui n'est pas publiée » | `status 409`, `error.code "OFFER_NOT_PUBLISHED"` | Couvert (backend) | Couvert |
 | 4 | EF-32 | Autre rôle refusé | back : « refuse les profils qui ne sont pas étudiants » (`applications.test.ts:193`) | `applyAs("ADMIN", …)` puis `status 403`, `error.code "FORBIDDEN"` | **Partiel** : seul l'administrateur est testé ; le contact d'entreprise ne l'est pas pour la création (il n'apparaît que dans le test de `GET /applications`) | Partiel |
-| 5 | EF-32 | Non connecté | Aucun | — | **Absent** | **Couvert** (test ajouté) |
+| 5 | EF-32 | Non connecté | Aucun | - | **Absent** | **Couvert** (test ajouté) |
 | 6 | EF-32 | Doublon refusé | back : « refuse une candidature active existante » | `status 409`, `"APPLICATION_EXISTS"` | **Partiel** : seulement avec une candidature En cours, pas Retenue / Non retenue | Partiel |
 | 7 | EF-32 | Recandidater après retrait = même ligne réactivée | back : « réactive une candidature retirée sans créer de doublon » | `status 201`, `id: APPLICATION.INES_BILLING_API` (même id), `status "IN_PROGRESS"` | Couvert (même id renvoyé ; pas de comptage des lignes en base) | Couvert |
 | 8 | EF-32 | Retrait d'une candidature En cours | back : « retire une candidature en cours et conserve la ligne » ; front : « demande confirmation puis retire la candidature » | `status 200`, `status "WITHDRAWN"`, ligne toujours listée ; front : confirmation + « Retirée » | Couvert | Couvert |
 | 9 | EF-32 | Retrait refusé si Retenue / Non retenue | back : « refuse le retrait d'une candidature au statut non modifiable (%s) » (SELECTED, REJECTED) | `status 409`, `"APPLICATION_NOT_IN_PROGRESS"` | Couvert | Couvert |
 | 10 | EF-32 | Retrait de la candidature d'un autre étudiant | back : « refuse le retrait de la candidature d'un autre étudiant » | `status 403`, `"FORBIDDEN"` | Couvert | Couvert |
-| 11 | EF-32 | Retrait d'un id inexistant | Aucun (seul un id **mal formé** est testé → 400) | — | **Absent** | **Couvert** (test ajouté) |
-| 12 | EF-33 | Un étudiant ne voit **que** ses candidatures | back : « retourne toutes les candidatures de l'étudiant, y compris retirées » | `expect.arrayContaining([...])` sur 2 candidatures d'Inès | **Partiel** : `arrayContaining` passe même si la liste contient **aussi** les candidatures d'un autre étudiant. L'absence des autres n'est pas vérifiée. | **Couvert** (test ajouté : liste complète vérifiée) |
+| 11 | EF-32 | Retrait d'un id inexistant | Aucun (seul un id **mal formé** est testé → 400) | - | **Absent** | **Couvert** (test ajouté) |
+| 12 | EF-33 | Un étudiant ne voit **que** ses candidatures | back : « retourne toutes les candidatures de l'étudiant, y compris retirées » ; **ajouté** : « ne retourne pas les candidatures d'un autre étudiant » | avant : `expect.arrayContaining([...])` sur 2 candidatures d'Inès ; ajouté : `toEqual` sur la liste complète de Lucas (uniquement sa candidature) | **Partiel** : `arrayContaining` passe même si la liste contient **aussi** les candidatures d'un autre étudiant. L'absence des autres n'est pas vérifiée. | **Couvert** (test ajouté : liste complète vérifiée) |
 | 13 | EF-33 | Les 4 statuts affichés | front : « affiche toutes les années et les statuts français », « sépare les offres disponibles des offres déjà candidatées », test d'envoi | « Retirée », « Retenue », « En cours » trouvés dans 3 tests différents | **Partiel** : « Non retenue » n'est testé nulle part | Partiel |
-| 14 | EF-33 | Candidature retirée toujours visible | back : « retourne toutes les candidatures… y compris retirées » ; front : « Retirée » affiché | `objectContaining({ status: "WITHDRAWN" })` | Couvert | Couvert |
+| 14 | EF-33 | Candidature retirée toujours visible | back : « retourne toutes les candidatures de l'étudiant, y compris retirées », « retire une candidature en cours et conserve la ligne » ; front : « affiche toutes les années et les statuts français », « demande confirmation puis retire la candidature » | `objectContaining({ status: "WITHDRAWN" })` | Couvert | Couvert |
 
 ### Corrections apportées à l'analyse de Copilot
 
@@ -87,7 +91,7 @@ Fichier backend : `backend/tests/applications.test.ts`. Fichiers frontend : `fro
 | Candidature sans message | `201`, `message: null`, `status "IN_PROGRESS"` | Le service rend le message obligatoire, ou enregistre `""` au lieu de `null` |
 | Candidature sans session | `401`, `error.code "UNAUTHENTICATED"` | Le middleware `authenticate` est retiré ou monté après la route (la candidature serait acceptée ou renverrait une autre erreur) |
 | Retrait d'une candidature inexistante | `404`, `error.code "APPLICATION_NOT_FOUND"` | Le service ne vérifie pas l'existence et renvoie 403, 409 ou plante (500) |
-| `GET /applications` ne renvoie que les candidatures de l'étudiant connecté (cas 12) | La **liste complète** renvoyée est comparée à la liste attendue (pas `arrayContaining`) : aucune candidature d'un autre étudiant n'y figure | Le repository ou le service ne filtre plus par `student_id` (ex. `findByStudent` remplacé par une requête sans `WHERE`) : la liste contiendrait aussi les candidatures d'un autre étudiant |
+| « ne retourne pas les candidatures d'un autre étudiant » (cas 12) | La **liste complète** renvoyée est comparée à la liste attendue (pas `arrayContaining`) : aucune candidature d'un autre étudiant n'y figure | Le repository ou le service ne filtre plus par `student_id` (ex. `findByStudent` remplacé par une requête sans `WHERE`) : la liste contiendrait aussi les candidatures d'un autre étudiant |
 
 **Non réalisé** : nous n'avons pas provoqué volontairement le défaut pour constater l'échec des tests ajoutés. Les défauts indiqués ci-dessus sont donc déduits de la lecture des assertions et du service, pas observés. Procédure possible sans risque : commenter le contrôle dans `applications.service.ts`, relancer le test, constater l'échec, puis `git restore` le fichier.
 
@@ -126,7 +130,7 @@ séance 6 « Client/Serveur ».
 
 | # | Attente ou convention de Web 2 (source) | Guide examiné (fichier et passage) | Correspondance | Écart ou ajout proposé |
 |---|---|---|---|---|
-| 1 | Architecture serveur **Controller → Service → DB** ; le serveur porte « logique métier, gestion des données, **sécurité** » (séance 3, slide « Rappels web1 — Serveur REST » ; séance 6, slide « Serveur ») | `copilot-instructions.md` : « Backend requests flow through `controllers -> services -> repositories -> SQLite` » et « Keep authorization and data visibility rules in backend services… Frontend permission helpers… must not be the security boundary » | **Oui** | Rien à ajouter. Le guide va plus loin que Web 2 (couche `repositories` séparée, mappers), de façon cohérente. |
+| 1 | Architecture serveur **Controller → Service → DB** ; le serveur porte « logique métier, gestion des données, **sécurité** » (séance 3, slide « Rappels web1 - Serveur REST » ; séance 6, slide « Serveur ») | `copilot-instructions.md` : « Backend requests flow through `controllers -> services -> repositories -> SQLite` » et « Keep authorization and data visibility rules in backend services… Frontend permission helpers… must not be the security boundary » | **Oui** | Rien à ajouter. Le guide va plus loin que Web 2 (couche `repositories` séparée, mappers), de façon cohérente. |
 | 2 | **L'ordre d'enregistrement des middlewares détermine l'ordre d'exécution** ; authentification au niveau de la route ; middleware d'erreur (séance 3, slides « Qu'est-ce qu'un middleware ? », « Middleware au niveau route », « Middleware d'erreur ») | `copilot-instructions.md` : « Authentication is applied before protected controllers… Use `HttpError` for expected failures so `errorHandler` returns the standard shape » | **Partielle** | Le principe est présent, mais **rien sur l'ordre de montage**. Conséquence observée en semaine 2 : en montant le routeur des candidatures à la racine, Copilot a rendu toutes les routes inconnues authentifiées (401 au lieu de 404), et c'est la suite de tests qui l'a détecté. **Ajout proposé** : « Monter `authenticate` au niveau du routeur ou de la route protégée, jamais globalement avant les routes publiques et le 404 ; enregistrer `errorHandler` en dernier. » |
 | 3 | **Ressources au pluriel**, sous-ressources (`/users/1/orders`) ; **POST crée, PATCH met à jour partiellement, DELETE supprime** (séance 4, slides « Ressources », « Méthodes HTTP », « Méthode et chemin ») | Aucun passage sur le nommage des routes ou le choix des méthodes HTTP, ni dans `copilot-instructions.md` ni dans `architecture.md` | **Non** (absent) | Nos routes : `POST /offers/:offerId/applications` respecte la sous-ressource. Le retrait est `POST /applications/:id/withdraw` : nous avons refusé `DELETE` (rien n'est supprimé), mais une route d'action n'est pas le style REST du cours, qui suggérerait `PATCH /applications/:id` sur le statut. Sans consigne dans le guide, ce choix dépend de chaque prompt. **Ajout proposé** : « Ressources au pluriel ; POST crée, PATCH modifie partiellement, DELETE supprime ; justifier toute route d'action. » |
 | 4 | **Codes de statut** : 201 après un POST ; 400 données invalides, 401 non authentifié, 403 sans droits, 404 inexistant, **409 conflit (ressource existe déjà)** (séance 4, slides « Statut de la réponse » et « Codes d'erreur ») | `copilot-instructions.md` : « Use `HttpError` for expected failures » et « tests for successful and denied access » ; `pull_request_template.md` : « cas d'erreur (400, 401, 403, 404…) » | **Partielle** | Le guide dit **comment** signaler une erreur, pas **quel code** choisir. Le modèle de PR ne cite pas 409, alors que nos doublons et l'offre non publiée en renvoient. Nous utilisons aussi 409 pour `OFFER_NOT_PUBLISHED`, ce qui va au-delà de la définition du cours (« ressource existe déjà ») : choix défendable (conflit d'état), mais à documenter. **Ajout proposé** : un tableau « situation → code HTTP → code d'erreur » dans le guide, et 409 dans le modèle de PR. |
@@ -151,10 +155,21 @@ Nous n'avons **pas modifié** les guides : la consigne demande un audit, pas une
 - Seuls les supports de Web 2 cités ci-dessus ont été utilisés ; d'autres séances (formulaires, état React, modules) n'ont pas donné de consigne vérifiable sur les points audités.
 - Le point 5 n'a été vérifié que dans `applications.service.ts`, pas dans tout le projet.
 
-## Optionnel — senseur d'architecture
+## Optionnel - senseur d'architecture
 
 - **Règle vérifiée** : un contrôleur (`backend/src/controllers/`) n'importe jamais un repository directement, et aucune requête SQL n'apparaît hors de `backend/src/repositories/`. Raison : sauter la couche service ferait aussi sauter les contrôles de droits (`permissions.ts`), ce qu'un agent pressé pourrait faire.
 - **Moment** : un test backend supplémentaire, donc exécuté par `npm run check` (par nous et par l'agent dans sa boucle automatique).
 - **Données examinées** : les lignes `import` des fichiers de `controllers/`, et les chaînes SQL (`SELECT`, `INSERT`, `UPDATE`) dans `src/` hors `repositories/`. Résultat : OK, ou la liste des fichiers et lignes en violation.
 - **Exemple de violation** : `applications.controller.ts` qui importe `applications.repository.ts`.
 - **Limites et coûts** : faux positifs possibles (import de types seuls, mots SQL dans un commentaire ou un message) ; ne détecte pas les violations indirectes ; un outil dédié (ex. dependency-cruiser) serait plus robuste mais ajouterait une dépendance. Non implémenté.
+
+## Crédits d'IA
+
+22% => 31% (62,3/200)
+
+## Fichiers livrés dans `docs/semaine-3/`
+
+- `semaine-3.md` : ce bilan
+- `matrice-guides-senseurs.html` : classification des guides et senseurs, et audit par rapport aux bonnes pratiques Web 2
+- `matrice-tracabilite-tests.html` : traçabilité des cas de tests par rapport aux exigences EF-32, EF-33 et RG-03
+- `conversation-3.md` : conversation complète avec Copilot (inventaire, couverture, tests ajoutés, génération des matrices), exportée sans retouche
