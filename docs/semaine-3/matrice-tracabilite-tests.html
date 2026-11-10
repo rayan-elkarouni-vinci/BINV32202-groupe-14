@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gesta — Traçabilité des tests</title>
+  <style>
+    :root{--ink:#183044;--muted:#5d6b73;--blue:#145a75;--line:#dce3e7;--bg:#f3f5f6;--amber:#805000;--soft:#fff2d7;--green:#28633b;--green-bg:#e5f3e8;--red:#8a2930;--red-bg:#fbe7e8}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}button,input,select{font:inherit}
+    .shell{max-width:1520px;margin:auto;padding:26px 32px 70px}.topline{display:flex;justify-content:space-between;gap:20px;align-items:center}.eyebrow{letter-spacing:.12em;font-size:11px;font-weight:750;color:var(--blue);text-transform:uppercase}.date{font-size:12px;color:var(--muted)}
+    h1{font-size:clamp(26px,3vw,40px);line-height:1.15;letter-spacing:-.035em;margin:14px 0 12px}h2{font-size:23px;margin:28px 0 12px;line-height:1.3}.lead{max-width:1050px;font-size:17px;margin:0;color:#425563}.scope{margin:12px 0 24px;color:var(--muted);max-width:1100px}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.legend-item{background:#fff;border:1px solid var(--line);border-radius:7px;padding:10px 13px;font-size:12px}
+    .badge{display:inline-block;border-radius:5px;font-size:11px;font-weight:750;padding:4px 7px;line-height:1.5;margin:0 2px 4px 0}.covered{background:var(--green-bg);color:var(--green)}.partial{background:var(--soft);color:var(--amber)}.absent{background:var(--red-bg);color:var(--red)}
+    .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:20px 0}.stat{border-top:3px solid var(--blue);padding:13px 15px;background:#fff;border-radius:0 0 7px 7px}.stat strong{font-size:26px;display:block;line-height:1.2}.stat span{font-size:11px;color:var(--muted)}
+    .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:#fff}table{border-collapse:collapse;width:100%;table-layout:fixed;min-width:1450px}th{text-align:left;background:#eaf0f3;color:#355164;font-size:11px;letter-spacing:.055em;text-transform:uppercase;padding:14px 13px;border-bottom:1px solid #cbd8df}td{padding:14px 13px;vertical-align:top;border-bottom:1px solid var(--line);font-size:13px;line-height:1.55}tr:nth-child(even){background:#fafcfd}tr.changed{box-shadow:inset 4px 0 #d59837;background:#fffaf0}tr:last-child td{border-bottom:0}
+    code{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.test{font-weight:650}.file{display:block;color:var(--muted);font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;margin-top:4px;overflow-wrap:anywhere}.section{background:#fff;border:1px solid var(--line);border-radius:8px;padding:18px 22px;margin-top:24px}.section h2{margin-top:0}.section li{margin:8px 0}.note{font-size:13px;color:var(--muted)}footer{font-size:12px;color:var(--muted);margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+    @media(max-width:900px){.shell{padding:18px 15px 45px}.topline{align-items:flex-start}.stats{grid-template-columns:repeat(2,1fr)}}@media print{body{background:#fff;font-size:10pt}.shell{max-width:none;padding:0}.stats{display:none}.tablewrap{overflow:visible;border:0}table{min-width:0}th,td{padding:7px;font-size:8pt}.section{border:0;padding:0}tr{break-inside:avoid}.badge{background:none!important;color:#222!important;padding:0}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="topline"><span class="eyebrow">Gesta · Traçabilité et vérification</span><span class="date">10 novembre 2026</span></div>
+      <h1>Traçabilité des tests — Candidatures (EF-32, EF-33, RG-03)</h1>
+      <p class="lead">Correspondance entre les exigences, les cas à vérifier, les tests du projet et leurs assertions.</p>
+      <p class="scope">Source unique : sections « Couverture des exigences » et « Modifications et vérification » de <code>docs/semaine-3/semaine-3.md</code>.</p>
+    </header>
+
+    <div class="legend" aria-label="Légende">
+      <div class="legend-item"><span class="badge covered">Couvert</span> = une assertion porte sur le résultat attendu</div>
+      <div class="legend-item"><span class="badge partial">Partiel</span> = seule une partie du résultat est vérifiée</div>
+      <div class="legend-item"><span class="badge absent">Absent</span> = aucun test</div>
+    </div>
+
+    <section aria-labelledby="summary">
+      <h2 id="summary">Résumé chiffré</h2>
+      <div class="stats">
+        <div class="stat"><strong>7</strong><span>Couvert avant</span></div>
+        <div class="stat"><strong>4</strong><span>Partiel avant</span></div>
+        <div class="stat"><strong>3</strong><span>Absent avant</span></div>
+        <div class="stat"><strong>11</strong><span>Couvert après</span></div>
+        <div class="stat"><strong>3</strong><span>Partiel après</span></div>
+        <div class="stat"><strong>0</strong><span>Absent après</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="matrix">
+      <h2 id="matrix">Couverture des exigences</h2>
+      <div class="tablewrap">
+        <table>
+          <colgroup><col style="width:4%"><col style="width:10%"><col style="width:16%"><col style="width:24%"><col style="width:22%"><col style="width:12%"><col style="width:12%"></colgroup>
+          <thead><tr><th>#</th><th>Exigence</th><th>Cas</th><th>Test (fichier et nom)</th><th>Assertions</th><th>Couverture avant</th><th>Couverture après séance</th></tr></thead>
+          <tbody>
+            <tr class="changed"><td>1</td><td>EF-32</td><td>Candidater sans message</td><td>Aucun (le test existant envoie un message)</td><td>—</td><td><span class="badge absent">Absent</span></td><td><span class="badge covered">Couvert</span> (test ajouté)</td></tr>
+            <tr><td>2</td><td>EF-32</td><td>Candidater avec message</td><td><span class="test">crée une candidature avec un message facultatif</span><span class="file">backend/tests/applications.test.ts</span><span class="test">permet à un étudiant d'envoyer une candidature avec un message</span><span class="file">frontend/tests/OffersPage.test.tsx</span></td><td><code>status 201</code>, <code>toMatchObject({ message: "Je suis très motivé.", status: "IN_PROGRESS" })</code> ; front : corps <code>POST</code> envoyé + « En cours » affiché</td><td><span class="badge covered">Couvert</span></td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr><td>3</td><td>EF-32 / RG-03</td><td>Offre non publiée refusée</td><td><span class="test">refuse une offre qui n'est pas publiée</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>status 409</code>, <code>error.code "OFFER_NOT_PUBLISHED"</code></td><td><span class="badge covered">Couvert (backend)</span></td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr><td>4</td><td>EF-32</td><td>Autre rôle refusé</td><td><span class="test">refuse les profils qui ne sont pas étudiants</span><span class="file">backend/tests/applications.test.ts:193</span></td><td><code>applyAs("ADMIN", …)</code> puis <code>status 403</code>, <code>error.code "FORBIDDEN"</code></td><td><span class="badge partial">Partiel</span> : seul l'administrateur est testé ; le contact d'entreprise ne l'est pas</td><td><span class="badge partial">Partiel</span></td></tr>
+            <tr class="changed"><td>5</td><td>EF-32</td><td>Non connecté</td><td>Aucun</td><td>—</td><td><span class="badge absent">Absent</span></td><td><span class="badge covered">Couvert</span> (test ajouté)</td></tr>
+            <tr><td>6</td><td>EF-32</td><td>Doublon refusé</td><td><span class="test">refuse une candidature active existante</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>status 409</code>, <code>"APPLICATION_EXISTS"</code></td><td><span class="badge partial">Partiel</span> : seulement avec une candidature En cours, pas Retenue / Non retenue</td><td><span class="badge partial">Partiel</span></td></tr>
+            <tr><td>7</td><td>EF-32</td><td>Recandidater après retrait = même ligne réactivée</td><td><span class="test">réactive une candidature retirée sans créer de doublon</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>status 201</code>, <code>id: APPLICATION.INES_BILLING_API</code> (même id), <code>status "IN_PROGRESS"</code></td><td><span class="badge covered">Couvert</span> (même id renvoyé ; pas de comptage des lignes en base)</td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr><td>8</td><td>EF-32</td><td>Retrait d'une candidature En cours</td><td><span class="test">retire une candidature en cours et conserve la ligne</span><span class="file">backend/tests/applications.test.ts</span><span class="test">demande confirmation puis retire la candidature</span><span class="file">frontend/tests/ApplicationsWithdraw.test.tsx</span></td><td><code>status 200</code>, <code>status "WITHDRAWN"</code>, ligne toujours listée ; front : confirmation + « Retirée »</td><td><span class="badge covered">Couvert</span></td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr><td>9</td><td>EF-32</td><td>Retrait refusé si Retenue / Non retenue</td><td><span class="test">refuse le retrait d'une candidature au statut non modifiable (%s)</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>status 409</code>, <code>"APPLICATION_NOT_IN_PROGRESS"</code></td><td><span class="badge covered">Couvert</span></td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr><td>10</td><td>EF-32</td><td>Retrait de la candidature d'un autre étudiant</td><td><span class="test">refuse le retrait de la candidature d'un autre étudiant</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>status 403</code>, <code>"FORBIDDEN"</code></td><td><span class="badge covered">Couvert</span></td><td><span class="badge covered">Couvert</span></td></tr>
+            <tr class="changed"><td>11</td><td>EF-32</td><td>Retrait d'un id inexistant</td><td>Aucun (seul un id <strong>mal formé</strong> est testé → 400)</td><td>—</td><td><span class="badge absent">Absent</span></td><td><span class="badge covered">Couvert</span> (test ajouté)</td></tr>
+            <tr class="changed"><td>12</td><td>EF-33</td><td>Un étudiant ne voit <strong>que</strong> ses candidatures</td><td><span class="test">retourne toutes les candidatures de l'étudiant, y compris retirées</span><span class="file">backend/tests/applications.test.ts</span><br><span class="test">ne retourne pas les candidatures d'un autre étudiant</span><span class="file">backend/tests/applications.test.ts</span></td><td><code>expect.arrayContaining([...])</code> sur 2 candidatures d'Inès ; après : liste complète vérifiée</td><td><span class="badge partial">Partiel</span> : <code>arrayContaining</code> ne vérifie pas l'absence des autres</td><td><span class="badge covered">Couvert</span> (test ajouté : liste complète vérifiée)</td></tr>
+            <tr><td>13</td><td>EF-33</td><td>Les 4 statuts affichés</td><td><span class="test">affiche toutes les années et les statuts français</span><span class="file">frontend/tests/ApplicationsPage.test.tsx</span><span class="test">sépare les offres disponibles des offres déjà candidatées</span><span class="file">frontend/tests/OffersPage.test.tsx</span><span class="test">permet à un étudiant d'envoyer une candidature avec un message</span><span class="file">frontend/tests/OffersPage.test.tsx</span></td><td>« Retirée », « Retenue », « En cours » trouvés dans 3 tests différents</td><td><span class="badge partial">Partiel</span> : « Non retenue » n'est testé nulle part</td><td><span class="badge partial">Partiel</span></td></tr>
+            <tr><td>14</td><td>EF-33</td><td>Candidature retirée toujours visible</td><td><span class="test">retourne toutes les candidatures de l'étudiant, y compris retirées</span><span class="file">backend/tests/applications.test.ts</span><span class="test">affiche toutes les années et les statuts français</span><span class="file">frontend/tests/ApplicationsPage.test.tsx</span></td><td><code>objectContaining({ status: "WITHDRAWN" })</code></td><td><span class="badge covered">Couvert</span></td><td><span class="badge covered">Couvert</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="added">
+      <h2 id="added">Tests ajoutés</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Test ajouté</th><th>Ce qu'il vérifie</th><th>Défaut qui le ferait échouer</th></tr></thead>
+          <tbody>
+            <tr><td>Candidature sans message</td><td><code>201</code>, <code>message: null</code>, <code>status "IN_PROGRESS"</code></td><td>Le service rend le message obligatoire, ou enregistre <code>""</code> au lieu de <code>null</code></td></tr>
+            <tr><td>Candidature sans session</td><td><code>401</code>, <code>error.code "UNAUTHENTICATED"</code></td><td>Le middleware <code>authenticate</code> est retiré ou monté après la route</td></tr>
+            <tr><td>Retrait d'une candidature inexistante</td><td><code>404</code>, <code>error.code "APPLICATION_NOT_FOUND"</code></td><td>Le service ne vérifie pas l'existence et renvoie 403, 409 ou plante (500)</td></tr>
+            <tr><td><code>GET /applications</code> ne renvoie que les candidatures de l'étudiant connecté (cas 12)</td><td>La <strong>liste complète</strong> renvoyée est comparée à la liste attendue (pas <code>arrayContaining</code>)</td><td>Le repository ou le service ne filtre plus par <code>student_id</code> (ex. <code>findByStudent</code> remplacé par une requête sans <code>WHERE</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><strong>Non réalisé</strong> : nous n'avons pas provoqué volontairement le défaut pour constater l'échec des tests ajoutés. Les défauts indiqués sont déduits de la lecture des assertions et du service.</p>
+    </section>
+
+    <section class="section" aria-labelledby="missing">
+      <h2 id="missing">Manques restants</h2>
+      <ol>
+        <li>Cas 4 : refus de la candidature pour un contact d'entreprise (seul l'administrateur est testé).</li>
+        <li>Cas 6 : doublon refusé quand la candidature existante est Retenue ou Non retenue.</li>
+        <li>Cas 13 : affichage du libellé « Non retenue ».</li>
+        <li>Candidature à une offre inexistante : le service renvoie <code>404 OFFER_NOT_FOUND</code>, mais aucun test correspondant n'a été repéré (seul un id d'offre <strong>mal formé</strong> est testé, 400).</li>
+        <li>Aucun test frontend des refus (offre non publiée, autre rôle) : acceptable, car les contrôles sont côté serveur et testés au niveau de l'API.</li>
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="outside">
+      <h2 id="outside">Tests hors exigence repérés</h2>
+      <ul>
+        <li>Backend : message de plus de 1000 caractères refusé (400 <code>INVALID_MESSAGE</code>) ; id d'offre invalide (400) ; id de candidature mal formé (400) ; candidature liée à une offre archivée toujours listée ; liste refusée aux profils non étudiants (403).</li>
+        <li>Frontend : annulation du retrait (aucune requête envoyée) ; état vide ; déconnexion sur session expirée ; offre retirée replacée dans les offres disponibles.</li>
+      </ul>
+    </section>
+
+    <section class="section" aria-labelledby="verification">
+      <h2 id="verification">Vérification des noms de tests</h2>
+      <p class="note">Les noms ont été comparés à <code>backend/tests/applications.test.ts</code> et aux fichiers <code>frontend/tests/*.test.tsx</code>. Écarts signalés par la source : « retourne toutes les candidatures… y compris retirées » est une abréviation ; le nom exact est « retourne toutes les candidatures de l'étudiant, y compris retirées ». « Retirée affiché » n'est pas un nom de test exact ; le test frontend correspondant est « affiche toutes les années et les statuts français ». Le test « refuse les profils qui ne sont pas étudiants » existe bien, mais il teste uniquement <code>ADMIN</code>, pas <code>CONTACT</code>.</p>
+    </section>
+
+    <footer>Commande et résultats de vérification : <code>npm run check</code> — lint : 0 erreur, 0 avertissement ; typecheck : OK ; backend : 135 tests réussis ; frontend : 55 tests réussis ; build : OK.</footer>
+  </main>
+</body>
+</html>
