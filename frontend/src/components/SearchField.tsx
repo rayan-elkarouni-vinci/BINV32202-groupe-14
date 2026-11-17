@@ -14,7 +14,7 @@ const SearchField = ({ label, value, onChange }: SearchFieldProps) => {
   return (
     <label className="search-field">
       <span>{label}</span>
-      <input type="search" value={value} onChange={handleChange} />
+      <input aria-label={label} type="search" value={value} onChange={handleChange} />
     </label>
   );
 };

@@ -3,6 +3,7 @@ import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadingState from "../components/LoadingState.tsx";
 import OfferTable from "../components/OfferTable.tsx";
+import SearchField from "../components/SearchField.tsx";
 import { useOffers } from "../hooks/useOffers.ts";
 import { useApplications } from "../hooks/useApplications.ts";
 import type { Application, ApplicationStatus } from "../models/application.ts";
@@ -24,7 +25,8 @@ const DESCRIPTIONS = {
 
 const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
   const [period, setPeriod] = useState<PeriodCode | undefined>();
-  const { offers, isLoading, error } = useOffers(token, period, onUnauthorized);
+  const [search, setSearch] = useState("");
+  const { offers, isLoading, error } = useOffers(token, period, search, onUnauthorized);
   const applicationsState = useApplications(token, onUnauthorized, user.kind === "STUDENT");
   const [localApplications, setLocalApplications] = useState<Application[]>([]);
   const applications = [
@@ -48,7 +50,17 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
       return <ErrorState message={applicationsState.error} />;
     }
     if (isLoading || applicationsState.isLoading) return <LoadingState />;
-    if (offers.length === 0) return <EmptyState message="Aucune offre à afficher." />;
+    if (offers.length === 0) {
+      return (
+        <EmptyState
+          message={
+            search.trim() === ""
+              ? "Aucune offre à afficher."
+              : "Aucune offre ne correspond à votre recherche."
+          }
+        />
+      );
+    }
     if (user.kind !== "STUDENT") {
       return (
         <>
@@ -99,6 +111,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
     <section>
       <h1>Offres de stage</h1>
       <p>{DESCRIPTIONS[user.kind]}</p>
+      <SearchField label="Recherche par titre" value={search} onChange={setSearch} />
       <label>
         <span>Période</span>
         <select

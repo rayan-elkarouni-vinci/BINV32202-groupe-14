@@ -220,6 +220,30 @@ describe("POST /offers/:offerId/applications", () => {
     expect(response.body.error.code).toBe("APPLICATION_EXISTS");
   });
 
+  it.each(["SELECTED", "REJECTED"])(
+    "refuse un doublon pour une candidature au statut %s sur une offre publiée",
+    async (status) => {
+      const db = createTestDatabase();
+      db.prepare(`
+        INSERT INTO applications (offer_id, student_id, message, status)
+        VALUES (?, ?, ?, ?)
+      `).run(OFFER.DATA_QUALITY, STUDENT.DMYTRO_KOVALENKO, null, status);
+      const publishedApp = createTestApp(db);
+
+      const response = await request(publishedApp)
+        .post(`/offers/${OFFER.DATA_QUALITY}/applications`)
+        .set("Authorization", tokenFor("STUDENT", STUDENT.DMYTRO_KOVALENKO));
+
+      expect(response.status).toBe(409);
+      expect(response.body.error.code).toBe("APPLICATION_EXISTS");
+      expect(
+        db
+          .prepare("SELECT COUNT(*) AS count FROM applications WHERE offer_id = ? AND student_id = ?")
+          .get(OFFER.DATA_QUALITY, STUDENT.DMYTRO_KOVALENKO),
+      ).toEqual({ count: 1 });
+    },
+  );
+
   it("réactive une candidature retirée sans créer de doublon", async () => {
     const response = await applyAs("STUDENT", STUDENT.INES_HADDAD, OFFER.BILLING_API, {
       message: "Nouvelle motivation",
