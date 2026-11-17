@@ -91,6 +91,36 @@ describe("OffersPage", () => {
     ));
   });
 
+  it("recherche dans le titre en ignorant les espaces périphériques et conserve la période", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json([offers[0]]) });
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    const searchField = await screen.findByRole("searchbox", { name: "Recherche par titre" });
+    fireEvent.change(searchField, { target: { value: "  portail client  " } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Période" }), {
+      target: { value: "P2" },
+    });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/offers?q=portail+client&period=P2",
+      expect.objectContaining({ headers: { Authorization: "jeton" } }),
+    ));
+  });
+
+  it("affiche un message adapté quand la recherche ne retourne aucune offre", async () => {
+    stubFetch({ "/api/offers": () => Response.json([]) });
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    fireEvent.change(await screen.findByRole("searchbox", { name: "Recherche par titre" }), {
+      target: { value: "inexistant" },
+    });
+
+    expect(await screen.findByText("Aucune offre ne correspond à votre recherche."))
+      .toBeInTheDocument();
+  });
+
   it("permet à un étudiant d'envoyer une candidature avec un message", async () => {
     const fetchMock = stubFetch({
       "/api/applications": () => Response.json([]),

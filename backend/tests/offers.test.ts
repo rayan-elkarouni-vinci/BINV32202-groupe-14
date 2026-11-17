@@ -16,6 +16,9 @@ const listOffersAs = (kind: UserKind, id: number) =>
 const listOffersAsWithPeriod = (kind: UserKind, id: number, period: string) =>
   request(app).get(`/offers?period=${period}`).set("Authorization", tokenFor(kind, id));
 
+const listOffersAsWithQuery = (kind: UserKind, id: number, query: string) =>
+  request(app).get(`/offers?${query}`).set("Authorization", tokenFor(kind, id));
+
 const offerIds = (body: { id: number }[]): number[] => body.map((offer) => offer.id);
 
 describe("GET /offers : accès", () => {
@@ -153,5 +156,87 @@ describe("GET /offers : filtre par période", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("INVALID_QUERY");
+  });
+});
+
+describe("GET /offers : recherche dans le titre", () => {
+  it("recherche une expression insensible à la casse après avoir ignoré ses espaces périphériques", async () => {
+    const response = await listOffersAsWithQuery(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "q=%20aPi%20ReSt%20",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.BILLING_API]);
+  });
+
+  it("combine la recherche avec la période et la visibilité publiée de l'étudiant", async () => {
+    const response = await listOffersAsWithQuery(
+      "STUDENT",
+      STUDENT.LUCAS_DUPONT,
+      "q=application&period=P2",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.FLEET_APP]);
+    expect(offerIds(response.body)).not.toContain(OFFER.CLOUD_MIGRATION);
+    expect(response.body.every((offer: { status: string }) => offer.status === "PUBLISHED"))
+      .toBe(true);
+  });
+
+  it("retourne une liste vide pour un mot absent de tous les titres", async () => {
+    const response = await listOffersAsWithQuery(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "q=xyz-inexistant",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it("recherche l'expression entière dans l'ordre saisi", async () => {
+    const response = await listOffersAsWithQuery(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "q=rest%20api",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it("ignore une recherche vide ou composée uniquement d'espaces", async () => {
+    const emptyResponse = await listOffersAsWithQuery(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "q=",
+    );
+    expect(emptyResponse.status).toBe(200);
+    expect(emptyResponse.body).toHaveLength(10);
+
+    const spacesResponse = await listOffersAsWithQuery(
+      "STUDENT",
+      STUDENT.LUCAS_DUPONT,
+      "q=%20%20",
+    );
+    expect(spacesResponse.status).toBe(200);
+    expect(offerIds(spacesResponse.body)).toEqual([
+      OFFER.INTERNAL_CHATBOT,
+      OFFER.DATA_QUALITY,
+      OFFER.FLEET_APP,
+      OFFER.BILLING_API,
+    ]);
+  });
+
+  it("refuse une recherche répétée", async () => {
+    const repeatedResponse = await listOffersAsWithQuery(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "q=API&q=REST",
+    );
+    expect(repeatedResponse.status).toBe(400);
+    expect(repeatedResponse.body.error.code).toBe("INVALID_QUERY");
   });
 });
