@@ -74,3 +74,11 @@ creating a second session flow.
   For schema or behavior changes, update the related documentation under `docs/`.
 - Follow the existing layer-by-layer implementation pattern of the companies and offers
   features, including backend authorization and tests for successful and denied access.
+
+## Développement piloté par les tests
+
+Pour tout ajout de fonctionnalité ou correction de bug, lis et applique
+.github/skills/test-driven-development/SKILL.md avant de modifier le code
+de l'application. Écris et exécute les tests d'abord, présente-les, puis attends
+leur validation explicite avant l'implémentation. Cette règle ne concerne pas les
+demandes d'explication ou de documentation seules.

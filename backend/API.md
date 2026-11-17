@@ -147,6 +147,10 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 ### Requête
 
 - Header `Authorization` obligatoire
+- Paramètre facultatif `q` : texte recherché dans le titre, sans distinguer majuscules et
+  minuscules. Les espaces au début et à la fin sont ignorés ; une valeur vide est ignorée.
+  Plusieurs mots sont recherchés comme une expression dans l'ordre saisi.
+- Paramètre facultatif `period` : `P1`, `P2` ou `OTHER`.
 
 ### Réponses
 
@@ -170,7 +174,8 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
-- `400` `INVALID_QUERY` : `period` est répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
+- `400` `INVALID_QUERY` : `q` est répété, `period` est répété ou `period` ne vaut pas `P1`,
+  `P2` ou `OTHER`.
 
 ## POST /offers/:offerId/applications
 
