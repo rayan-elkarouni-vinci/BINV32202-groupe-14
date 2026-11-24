@@ -118,7 +118,6 @@ Contrairement à la semaine 3, le défaut a cette fois été **réellement provo
 
 - `docs/semaine-5/semaine-5.md` : ce bilan
 - `docs/semaine-5/conversation-5.md` : conversation complète avec Copilot (scénarios, exécution MCP, génération des tests, défaut temporaire), version allégée pour la lecture (voir son en-tête)
-- `docs/semaine-5/conversation-5-brut.md` : export brut de la même conversation, sans retouche
 - `e2e/recherche-offres/scenarios.md` : les deux scénarios
 - `e2e/recherche-offres/recherche-offres.spec.ts` : les tests Playwright
 - `playwright.config.ts` : la configuration Playwright Test

@@ -7,7 +7,7 @@
 > - le tableau de l'énoncé, déformé par le copier-coller depuis le PDF, a été remis en forme ;
 > - les liens absolus vers des fichiers locaux sont remplacés par des chemins relatifs.
 >
-> Aucun message ni aucune réponse n'a été reformulé. L'export brut est conservé dans `conversation-5-brut.md`.
+> Aucun message ni aucune réponse n'a été reformulé.
 > Les tests Playwright ont été exécutés par nous dans le terminal, pas par Copilot (voir le bilan).
 
 ---
